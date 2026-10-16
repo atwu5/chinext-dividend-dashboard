@@ -49,12 +49,10 @@ interface Props {
   records: DailyRecord[]
   granularity: Granularity
   rangeKey: RangeKey
-  /** 手机窄屏：上下两张同步走势图（上=相对比值，下=创业板指数），共用时间范围与数据指针 */
-  stacked: boolean
   reducedMotion: boolean
-  /** 图表卡是否处于浏览器全屏模式（状态由父级管理，全屏下图表格子自动拉伸） */
+  /** 图表卡是否处于全屏模式（真实全屏或移动端模拟全屏，下图表格子自动拉伸） */
   isFullscreen?: boolean
-  /** 进入/退出全屏（父级实现；未提供或堆叠布局时不显示全屏按钮） */
+  /** 进入/退出全屏（父级实现；未提供时不显示全屏按钮） */
   onToggleFullscreen?: () => void
 }
 
@@ -103,7 +101,6 @@ export default function MainChart({
   records,
   granularity,
   rangeKey,
-  stacked,
   reducedMotion,
   isFullscreen = false,
   onToggleFullscreen,
@@ -130,8 +127,6 @@ export default function MainChart({
   // 通过 ref 让构建函数读到最新 UI 状态，同时避免重建图表实例
   const granularityRef = useRef(granularity)
   granularityRef.current = granularity
-  const stackedRef = useRef(stacked)
-  stackedRef.current = stacked
   const reducedRef = useRef(reducedMotion)
   reducedRef.current = reducedMotion
   const coarseRef = useRef(coarse)
@@ -150,15 +145,8 @@ export default function MainChart({
 
   const buildOption = useCallback((): ChartOption => {
     const g = granularityRef.current
-    const isStacked = stackedRef.current
     const reduced = reducedRef.current
     const isCoarse = coarseRef.current
-
-    const xRatioIdx = 0
-    const xIndexIdx = isStacked ? 1 : 0
-    const yRatioIdx = isStacked ? 0 : 1
-    const yIndexIdx = isStacked ? 1 : 0
-    const zoomAxisIndex = isStacked ? [0, 1] : [0]
 
     const baseX = {
       type: 'time' as const,
@@ -170,20 +158,12 @@ export default function MainChart({
     const axisLabel = {
       hideOverlap: true,
       color: MUTED,
-      fontSize: isStacked ? 10 : 11,
+      fontSize: 11,
       formatter: makeAxisFormatter(g),
     }
     const pointerLabel = { show: true, backgroundColor: INK, fontSize: 10 }
 
-    const xAxis = isStacked
-      ? [
-          // 多 grid 布局必须显式指定 gridIndex：否则第二套 y 轴（gridIndex 1）与
-          // x 轴（默认 grid 0）不在同一 grid，series 绑定时抛出
-          // “xAxis and yAxis must use the same grid”，导致移动端白屏
-          { ...baseX, gridIndex: 0, axisLabel: { show: false }, axisLine: { show: false }, axisPointer: { label: { show: false } } },
-          { ...baseX, gridIndex: 1, axisLabel, axisPointer: { label: pointerLabel } },
-        ]
-      : [{ ...baseX, axisLabel, axisPointer: { label: pointerLabel } }]
+    const xAxis = [{ ...baseX, axisLabel, axisPointer: { label: pointerLabel } }]
 
     const ratioAxis = {
       type: 'value' as const,
@@ -193,7 +173,7 @@ export default function MainChart({
       axisLine: { show: false },
       axisTick: { show: false },
       splitLine: { show: false },
-      name: isStacked ? undefined : '相对比值',
+      name: '相对比值',
       nameGap: 10,
       nameTextStyle: { color: MUTED, fontSize: 10, align: 'right' as const, padding: [0, 2, 0, 0] },
       axisPointer: { label: { formatter: (p: { value: number }) => Number(p.value).toFixed(3), backgroundColor: INK, fontSize: 10 } },
@@ -205,20 +185,12 @@ export default function MainChart({
       axisLine: { show: false },
       axisTick: { show: false },
       splitLine: { lineStyle: { color: '#EEF1F6' } },
-      name: isStacked ? undefined : '指数点位（点）',
+      name: '指数点位（点）',
       nameGap: 10,
       nameTextStyle: { color: MUTED, fontSize: 10, align: 'left' as const, padding: [0, 0, 0, 2] },
     }
-    const yAxis = isStacked
-      ? [{ ...ratioAxis, gridIndex: 0 }, { ...indexAxis, gridIndex: 1 }]
-      : [indexAxis, ratioAxis]
-
-    const grid = isStacked
-      ? [
-          { left: 46, right: 46, top: 34, height: 146 },
-          { left: 46, right: 46, top: 222, bottom: 64 },
-        ]
-      : [{ left: 60, right: 60, top: 64, bottom: 96 }]
+    const yAxis = [indexAxis, ratioAxis]
+    const grid = [{ left: 60, right: 60, top: 64, bottom: 96 }]
 
     const tooltipFormatter = (params: unknown): string => {
       const arr = (Array.isArray(params) ? params : [params]) as Array<{
@@ -260,18 +232,18 @@ export default function MainChart({
       axisPointer: { link: [{ xAxisIndex: 'all' }], label: { backgroundColor: INK } },
       legend: {
         data: ['创业板指数', '创业板/中证红利'],
-        top: isStacked ? 2 : 6,
+        top: 6,
         left: 4,
         itemWidth: 16,
         itemGap: 14,
-        textStyle: { color: '#5A6B85', fontSize: isStacked ? 11 : 12 },
+        textStyle: { color: '#5A6B85', fontSize: 12 },
         inactiveColor: '#C3CAD6',
         selected: legendRef.current,
       },
       tooltip: {
         trigger: 'axis',
         axisPointer: {
-          type: isStacked ? 'line' : 'cross',
+          type: 'cross',
           lineStyle: { color: '#C3CAD6' },
           crossStyle: { color: '#C3CAD6' },
           label: { backgroundColor: INK },
@@ -292,7 +264,7 @@ export default function MainChart({
       dataZoom: [
         {
           type: 'inside',
-          xAxisIndex: zoomAxisIndex,
+          xAxisIndex: [0],
           filterMode: 'filter',
           zoomOnMouseWheel: true,
           moveOnMouseMove: !isCoarse, // 触屏设备禁止单指拖图，避免与页面纵向滚动冲突；平移走底部滑块
@@ -305,10 +277,10 @@ export default function MainChart({
         },
         {
           type: 'slider',
-          xAxisIndex: zoomAxisIndex,
+          xAxisIndex: [0],
           filterMode: 'filter',
           height: 26,
-          bottom: isStacked ? 8 : 22,
+          bottom: 22,
           left: 12,
           right: 12,
           showDataShadow: false,
@@ -342,8 +314,6 @@ export default function MainChart({
             [TIMELINE_START, REF_LOW],
             [records[records.length - 1].date, REF_LOW],
           ],
-          xAxisIndex: xRatioIdx,
-          yAxisIndex: yRatioIdx,
           silent: true,
           showSymbol: false,
           lineStyle: { opacity: 0 },
@@ -359,7 +329,7 @@ export default function MainChart({
                 yAxis: REF_LOW,
                 lineStyle: { color: LOW, shadowColor: 'rgba(32,169,123,0.35)', shadowBlur: 6 },
                 label: {
-                  formatter: isStacked ? '0.300' : '0.300 历史低位参考',
+                  formatter: '0.300 历史低位参考',
                   color: LOW,
                   fontSize: 10,
                   position: 'insideEndTop',
@@ -370,7 +340,7 @@ export default function MainChart({
                 yAxis: REF_HIGH,
                 lineStyle: { color: HIGH, shadowColor: 'rgba(230,91,100,0.35)', shadowBlur: 6 },
                 label: {
-                  formatter: isStacked ? '0.700' : '0.700 历史高位参考',
+                  formatter: '0.700 历史高位参考',
                   color: HIGH,
                   fontSize: 10,
                   position: 'insideEndTop',
@@ -384,10 +354,8 @@ export default function MainChart({
           name: '创业板指数',
           type: 'line',
           data: records.map((r) => [r.date, r.chinextClose]),
-          xAxisIndex: xIndexIdx,
-          yAxisIndex: yIndexIdx,
           showSymbol: false,
-          lineStyle: { width: isStacked ? 1.6 : 1.4, color: BLUE },
+          lineStyle: { width: 1.4, color: BLUE },
           itemStyle: { color: BLUE },
           color: BLUE,
           z: 2,
@@ -396,8 +364,7 @@ export default function MainChart({
           name: '创业板/中证红利',
           type: 'line',
           data: records.map((r) => [r.date, r.ratio]),
-          xAxisIndex: xRatioIdx,
-          yAxisIndex: yRatioIdx,
+          yAxisIndex: 1,
           showSymbol: false,
           lineStyle: { width: 2.2, color: GOLD },
           itemStyle: { color: GOLD },
@@ -427,9 +394,9 @@ export default function MainChart({
       ],
     }
     return option as ChartOption
-  }, [records, extremes, recordMap, stacked, reducedMotion, coarse])
+  }, [records, extremes, recordMap, reducedMotion, coarse])
 
-  // 构建 / 重建图表（stacked 布局切换、数据刷新时整体重建；缩放窗口与图例状态保留）
+  // 构建 / 重建图表（数据刷新时整体重建；缩放窗口与图例状态保留）
   useEffect(() => {
     const dom = domRef.current
     if (!dom || records.length === 0) return
@@ -513,27 +480,48 @@ export default function MainChart({
     const label = {
       hideOverlap: true,
       color: MUTED,
-      fontSize: stacked ? 10 : 11,
+      fontSize: 11,
       formatter: makeAxisFormatter(granularity),
     }
-    const patch = stacked
-      ? { xAxis: [{ axisLabel: { show: false } }, { axisLabel: label }] }
-      : { xAxis: [{ axisLabel: label }] }
     try {
-      chart.setOption(patch as ChartOption)
+      chart.setOption({ xAxis: [{ axisLabel: label }] } as ChartOption)
     } catch (e) {
       setInitError(e instanceof Error ? e.message : '图表更新失败')
     }
-  }, [granularity, stacked, records])
+  }, [granularity, records])
 
-  const chartShellClass = isFullscreen ? 'h-full w-full' : 'h-[400px] w-full md:h-[560px]'
+  // 按钮行独立于图表上方（不悬浮遮挡曲线）；全屏下图表格子拉伸铺满
+  const chartShellClass = isFullscreen ? 'w-full min-h-0 flex-1' : 'h-[400px] w-full md:h-[560px]'
 
   return (
-    <div className={isFullscreen ? 'relative h-full w-full' : 'relative'}>
+    <div className={isFullscreen ? 'relative flex h-full w-full flex-col' : 'relative'}>
+      <div className="flex items-center justify-end gap-2 pb-2">
+        <button
+          type="button"
+          onClick={resetZoom}
+          title="重置时间范围（恢复完整区间）"
+          aria-label="重置时间范围"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-white text-[#5A6B85] shadow-sm transition-colors hover:border-[#C9D2E0] hover:text-ink md:h-9 md:w-9"
+        >
+          <RotateCcw size={15} />
+        </button>
+        {onToggleFullscreen && (
+          <button
+            type="button"
+            onClick={onToggleFullscreen}
+            aria-pressed={isFullscreen}
+            title={isFullscreen ? '退出全屏（ESC）' : '全屏查看走势图'}
+            aria-label={isFullscreen ? '退出全屏' : '全屏查看走势图'}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-white text-[#5A6B85] shadow-sm transition-colors hover:border-[#C9D2E0] hover:text-ink md:h-9 md:w-9"
+          >
+            {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+          </button>
+        )}
+      </div>
       {initError ? (
         <div
-          className={`flex items-center justify-center px-4 text-center text-sm text-muted ${
-            isFullscreen ? 'h-full' : 'h-[400px] md:h-[560px]'
+          className={`flex w-full items-center justify-center px-4 text-center text-sm text-muted ${
+            isFullscreen ? 'min-h-0 flex-1' : 'h-[400px] md:h-[560px]'
           }`}
         >
           图表初始化失败：{initError}（请刷新页面重试）
@@ -541,33 +529,8 @@ export default function MainChart({
       ) : (
         <div ref={domRef} className={chartShellClass} />
       )}
-      {!initError && (
-        <div className="absolute right-2 top-2 z-10 flex gap-2">
-          <button
-            type="button"
-            onClick={resetZoom}
-            title="重置时间范围（恢复完整区间）"
-            aria-label="重置时间范围"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-white/90 text-[#5A6B85] shadow-sm backdrop-blur transition-colors hover:text-ink md:h-9 md:w-9"
-          >
-            <RotateCcw size={15} />
-          </button>
-          {onToggleFullscreen && !stacked && (
-            <button
-              type="button"
-              onClick={onToggleFullscreen}
-              aria-pressed={isFullscreen}
-              title={isFullscreen ? '退出全屏（ESC）' : '全屏查看走势图'}
-              aria-label={isFullscreen ? '退出全屏' : '全屏查看走势图'}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-white/90 text-[#5A6B85] shadow-sm backdrop-blur transition-colors hover:text-ink md:h-9 md:w-9"
-            >
-              {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-            </button>
-          )}
-        </div>
-      )}
       {extreme && !initError && (
-        <div className="absolute right-2 top-12 z-10 w-60 rounded-xl border border-line bg-white/95 p-3 shadow-pop backdrop-blur md:top-11">
+        <div className="absolute right-2 top-[54px] z-10 w-60 rounded-xl border border-line bg-white/95 p-3 shadow-pop backdrop-blur md:top-12">
           <div className="flex items-center justify-between">
             <span className={`text-xs font-semibold ${extreme.kind === 'low' ? 'text-zone-low' : 'text-zone-high'}`}>
               {extreme.kind === 'low' ? '全历史最低比值' : '全历史最高比值'}
