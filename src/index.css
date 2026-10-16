@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-page text-ink antialiased;
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC',
+      'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', Roboto, sans-serif;
+  }
+
+  ::selection {
+    background: rgba(197, 164, 109, 0.3);
+  }
+}
+
+/* 系统开启「减少动态效果」时压缩 CSS 动画与过渡；JS 动画由 useReducedMotion 处理 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

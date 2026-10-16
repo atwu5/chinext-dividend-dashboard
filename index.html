@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="基于创业板指数与中证红利指数历史相对强弱的风格观察工具，仅供个人研究使用，不构成投资建议。" />
+    <meta name="theme-color" content="#F8F9FC" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>创业板 · 红利风格观察仪表盘</title>
+    <script>
+      // 兕底诊断：未捕获的脚本异常以顶部横幅展示，避免移动端出现“无从排查的白屏”
+      window.addEventListener('error', function (e) {
+        try {
+          var msg = e && e.message ? e.message : String(e && e.error ? e.error : e)
+          if (!msg) return
+          var box = document.createElement('div')
+          box.style.cssText =
+            'position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#fff5f5;color:#b3261e;padding:10px 14px;font:12px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;border-bottom:1px solid #f2c4c4;white-space:pre-wrap;word-break:break-all;'
+          box.textContent = '页面脚本异常：' + msg
+          ;(document.body || document.documentElement).appendChild(box)
+        } catch (_) {
+          /* ignore */
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>本页面需要启用 JavaScript 才能查看。</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

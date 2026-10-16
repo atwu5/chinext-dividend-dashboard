@@ -1,0 +1,51 @@
+name: 全量数据完整性检查
+
+on:
+  schedule:
+    # 北京时间每周六 10:00（UTC 周六 02:00）。周六休市，适合做全量核对；
+    # 用于发现早期缺口与数据源历史修订，日常访问与每日更新不做全量下载。
+    - cron: '0 2 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrity-check
+  cancel-in-progress: false
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 全量完整性检查（自动修复小规模差异，超 10% 差异则中止）
+        run: npm run data:integrity
+
+      - name: 数据校验
+        run: npm run data:validate
+
+      - name: 提交并推送修复
+        run: |
+          if [[ -n "$(git status --porcelain public/data)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/data
+            git commit -m "chore(data): 全量完整性检查修复（run $GITHUB_RUN_ID）"
+            git push
+            echo "已提交完整性修复，将自动触发 Pages 重新部署"
+          else
+            echo "数据与数据源全量一致，无需提交"
+          fi

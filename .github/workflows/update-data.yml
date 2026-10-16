@@ -1,0 +1,67 @@
+name: 数据每日增量更新
+
+on:
+  schedule:
+    # GitHub Actions cron 使用 UTC；A 股 15:00 收盘，数据商日K一般 16:00 后完成更新。
+    # 以下时间 = 北京时间（Asia/Shanghai, UTC+8）周一至周五 16:00 / 17:30 / 18:30。
+    # 注意：GitHub Actions 定时任务可能延迟数分钟甚至更久，不能保证精确分钟执行；
+    # 更新脚本幂等（无新交易日则不写文件、不提交），多次触发是安全的。
+    - cron: '0 8 * * 1-5'
+    - cron: '30 9 * * 1-5'
+    - cron: '30 10 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: '手动触发原因（可选）'
+        default: 'manual'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 增量更新历史数据
+        run: npm run data:update
+
+      - name: 数据校验
+        run: npm run data:validate
+
+      - name: 提交并推送数据变更
+        run: |
+          if [[ -n "$(git status --porcelain public/data)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/data
+            git commit -m "chore(data): 每日增量更新（run $GITHUB_RUN_ID）"
+            git push
+            echo "DATA_CHANGED=true" >> "$GITHUB_ENV"
+            echo "已提交数据变更，将自动触发 Pages 重新部署"
+          else
+            echo "数据无变化，跳过提交（节假日 / 数据源未更新）"
+          fi
+
+      - name: 记录结果
+        if: always()
+        run: |
+          echo "更新流程结束。若上方更新步骤失败，请查看日志：常见原因为数据源接口临时不可用，" \
+               "本地数据未被修改，线上仍为上一有效版本，等待下次定时任务重试即可。"

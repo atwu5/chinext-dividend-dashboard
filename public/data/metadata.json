@@ -1,0 +1,30 @@
+{
+  "timelineStart": "2009-10-30",
+  "source": "eastmoney",
+  "sourceName": "东方财富 push2his 行情接口",
+  "caliber": "A股指数日K线收盘点位（不复权）；仅保留两个指数同日均有收盘数据的交易日；指数发布前无可靠历史，保留空白",
+  "indices": {
+    "chinext": {
+      "fullCode": "399006.SZ",
+      "providerSymbol": "0.399006",
+      "name": "创业板指",
+      "firstDate": "2010-06-01",
+      "lastDate": "2026-10-16"
+    },
+    "dividend": {
+      "fullCode": "000922.SH",
+      "providerSymbol": "1.000922",
+      "name": "中证红利",
+      "firstDate": "2009-10-30",
+      "lastDate": "2026-10-16"
+    }
+  },
+  "firstDate": "2010-06-01",
+  "lastDate": "2026-10-16",
+  "count": 3975,
+  "version": 2,
+  "lastUpdated": "2026-10-16T08:51:18.373Z",
+  "ratioDefinition": "相对比值 = 创业板指数收盘点位 ÷ 中证红利指数收盘点位（存储 6 位小数）",
+  "scriptVersion": "1.0.0",
+  "lastUpdateSource": "eastmoney"
+}
