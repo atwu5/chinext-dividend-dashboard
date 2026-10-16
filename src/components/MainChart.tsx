@@ -314,6 +314,10 @@ export default function MainChart({
             [TIMELINE_START, REF_LOW],
             [records[records.length - 1].date, REF_LOW],
           ],
+          // 必须绑定右轴（比值轴）：缺省绑到左轴（指数点位刻度）时，
+          // markLine 的 0.3/0.7 会按点位量级定位而贴近横轴，且 0.3 恒定值会拖坏左轴缩放
+          xAxisIndex: 0,
+          yAxisIndex: 1,
           silent: true,
           showSymbol: false,
           lineStyle: { opacity: 0 },
