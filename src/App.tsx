@@ -10,7 +10,7 @@ import Header from './components/Header'
 import MainChart from './components/MainChart'
 import MetricCards from './components/MetricCards'
 import Skeleton from './components/Skeleton'
-import TimeRangeSelector, { type Granularity, type RangeKey } from './components/TimeRangeSelector'
+import type { Granularity, RangeKey } from './components/TimeRangeSelector'
 import Toast, { type ToastData } from './components/Toast'
 import { useMarketData } from './hooks/useMarketData'
 import { useMediaQuery } from './hooks/useMediaQuery'
@@ -167,17 +167,13 @@ export default function App() {
                       </p>
                     </div>
                   )}
-                  <TimeRangeSelector
-                    granularity={granularity}
-                    rangeKey={rangeKey}
-                    onGranularityChange={setGranularity}
-                    onRangeChange={setRangeKey}
-                  />
                   <div className={isChartFullscreen ? 'mt-3 min-h-0 flex-1' : 'mt-3'}>
                     <MainChart
                       records={records}
                       granularity={granularity}
+                      onGranularityChange={setGranularity}
                       rangeKey={rangeKey}
+                      onRangeChange={setRangeKey}
                       reducedMotion={reduced}
                       isFullscreen={isChartFullscreen}
                       onToggleFullscreen={toggleChartFullscreen}

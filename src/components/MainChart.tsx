@@ -19,7 +19,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 import { zoneStyleOf } from '../utils/calculations'
 import { fmtDateUTC, fmtPoint, pad2, shiftYearsISO, laterDate } from '../utils/format'
 import { fmtRatio } from '../utils/calculations'
-import type { Granularity, RangeKey } from './TimeRangeSelector'
+import TimeRangeSelector, { type Granularity, type RangeKey } from './TimeRangeSelector'
 
 echarts.use([
   LineChart,
@@ -48,7 +48,11 @@ type ChartOption = Parameters<ChartInstance['setOption']>[0]
 interface Props {
   records: DailyRecord[]
   granularity: Granularity
+  /** 坐标刻度切换（状态由父级持有） */
+  onGranularityChange: (g: Granularity) => void
   rangeKey: RangeKey
+  /** 快捷时间范围切换（状态由父级持有） */
+  onRangeChange: (r: RangeKey) => void
   reducedMotion: boolean
   /** 图表卡是否处于全屏模式（真实全屏或移动端模拟全屏，下图表格子自动拉伸） */
   isFullscreen?: boolean
@@ -100,7 +104,9 @@ function clampTooltipPosition(
 export default function MainChart({
   records,
   granularity,
+  onGranularityChange,
   rangeKey,
+  onRangeChange,
   reducedMotion,
   isFullscreen = false,
   onToggleFullscreen,
@@ -190,7 +196,7 @@ export default function MainChart({
       nameTextStyle: { color: MUTED, fontSize: 10, align: 'left' as const, padding: [0, 0, 0, 2] },
     }
     const yAxis = [indexAxis, ratioAxis]
-    const grid = [{ left: 60, right: 60, top: 64, bottom: 96 }]
+    const grid = [{ left: 60, right: 60, top: 86, bottom: 96 }]
 
     const tooltipFormatter = (params: unknown): string => {
       const arr = (Array.isArray(params) ? params : [params]) as Array<{
@@ -230,16 +236,29 @@ export default function MainChart({
       animationDurationUpdate: reduced ? 0 : 350,
       animationEasing: 'cubicOut',
       axisPointer: { link: [{ xAxisIndex: 'all' }], label: { backgroundColor: INK } },
-      legend: {
-        data: ['创业板指数', '创业板/中证红利'],
-        top: 6,
-        left: 4,
-        itemWidth: 16,
-        itemGap: 14,
-        textStyle: { color: '#5A6B85', fontSize: 12 },
-        inactiveColor: '#C3CAD6',
-        selected: legendRef.current,
-      },
+      // 双行图例：第一行 = 曲线开关；第二行 = 0.3/0.7 参考线说明（避免标注悬浮遮挡曲线）
+      legend: [
+        {
+          data: ['创业板指数', '创业板/中证红利'],
+          top: 6,
+          left: 4,
+          itemWidth: 16,
+          itemGap: 14,
+          textStyle: { color: '#5A6B85', fontSize: 12 },
+          inactiveColor: '#C3CAD6',
+          selected: legendRef.current,
+        },
+        {
+          data: ['0.300 低位参考', '0.700 高位参考'],
+          top: 28,
+          left: 4,
+          itemWidth: 14,
+          itemGap: 12,
+          textStyle: { color: MUTED, fontSize: 11 },
+          inactiveColor: '#C3CAD6',
+          selected: legendRef.current,
+        },
+      ],
       tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -327,6 +346,7 @@ export default function MainChart({
             silent: true,
             symbol: 'none',
             animation: false,
+            label: { show: false }, // 参考线说明移至图例行，避免悬浮文字遮挡曲线
             lineStyle: { type: 'dashed', width: 1.2 },
             data: [
               {
@@ -394,6 +414,27 @@ export default function MainChart({
               { coord: [extremes.high.date, extremes.high.ratio], itemStyle: { color: HIGH } },
             ],
           },
+        },
+        // 参考线图例说明（空数据系列，仅用于图例展示；开关不影响真实参考线）
+        {
+          name: '0.300 低位参考',
+          type: 'line',
+          data: [],
+          itemStyle: { color: LOW },
+          lineStyle: { color: LOW, type: 'dashed' },
+          color: LOW,
+          silent: true,
+          legendHoverLink: false,
+        },
+        {
+          name: '0.700 高位参考',
+          type: 'line',
+          data: [],
+          itemStyle: { color: HIGH },
+          lineStyle: { color: HIGH, type: 'dashed' },
+          color: HIGH,
+          silent: true,
+          legendHoverLink: false,
         },
       ],
     }
@@ -499,28 +540,36 @@ export default function MainChart({
 
   return (
     <div className={isFullscreen ? 'relative flex h-full w-full flex-col' : 'relative'}>
-      <div className="flex items-center justify-end gap-2 pb-2">
-        <button
-          type="button"
-          onClick={resetZoom}
-          title="重置时间范围（恢复完整区间）"
-          aria-label="重置时间范围"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-white text-[#5A6B85] shadow-sm transition-colors hover:border-[#C9D2E0] hover:text-ink md:h-9 md:w-9"
-        >
-          <RotateCcw size={15} />
-        </button>
-        {onToggleFullscreen && (
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
+        <TimeRangeSelector
+          granularity={granularity}
+          rangeKey={rangeKey}
+          onGranularityChange={onGranularityChange}
+          onRangeChange={onRangeChange}
+        />
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onToggleFullscreen}
-            aria-pressed={isFullscreen}
-            title={isFullscreen ? '退出全屏（ESC）' : '全屏查看走势图'}
-            aria-label={isFullscreen ? '退出全屏' : '全屏查看走势图'}
+            onClick={resetZoom}
+            title="重置时间范围（恢复完整区间）"
+            aria-label="重置时间范围"
             className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-white text-[#5A6B85] shadow-sm transition-colors hover:border-[#C9D2E0] hover:text-ink md:h-9 md:w-9"
           >
-            {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+            <RotateCcw size={15} />
           </button>
-        )}
+          {onToggleFullscreen && (
+            <button
+              type="button"
+              onClick={onToggleFullscreen}
+              aria-pressed={isFullscreen}
+              title={isFullscreen ? '退出全屏（ESC）' : '全屏查看走势图'}
+              aria-label={isFullscreen ? '退出全屏' : '全屏查看走势图'}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-white text-[#5A6B85] shadow-sm transition-colors hover:border-[#C9D2E0] hover:text-ink md:h-9 md:w-9"
+            >
+              {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+            </button>
+          )}
+        </div>
       </div>
       {initError ? (
         <div
