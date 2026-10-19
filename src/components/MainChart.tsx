@@ -118,6 +118,7 @@ export default function MainChart({
   const [extreme, setExtreme] = useState<{ kind: 'low' | 'high'; rec: DailyRecord } | null>(null)
   const [initError, setInitError] = useState<string | null>(null)
   const coarse = useMediaQuery('(pointer: coarse)')
+  const isWide = useMediaQuery('(min-width: 768px)')
 
   const recordMap = useMemo(() => new Map(records.map((r) => [r.date, r])), [records])
   const extremes = useMemo(() => {
@@ -137,6 +138,8 @@ export default function MainChart({
   reducedRef.current = reducedMotion
   const coarseRef = useRef(coarse)
   coarseRef.current = coarse
+  const isWideRef = useRef(isWide)
+  isWideRef.current = isWide
 
   const resetZoom = useCallback(() => {
     const chart = chartRef.current
@@ -153,6 +156,7 @@ export default function MainChart({
     const g = granularityRef.current
     const reduced = reducedRef.current
     const isCoarse = coarseRef.current
+    const wide = isWideRef.current
 
     const baseX = {
       type: 'time' as const,
@@ -196,7 +200,7 @@ export default function MainChart({
       nameTextStyle: { color: MUTED, fontSize: 10, align: 'left' as const, padding: [0, 0, 0, 2] },
     }
     const yAxis = [indexAxis, ratioAxis]
-    const grid = [{ left: 60, right: 60, top: 86, bottom: 96 }]
+    const grid = [{ left: 60, right: 60, top: wide ? 64 : 86, bottom: 96 }]
 
     const tooltipFormatter = (params: unknown): string => {
       const arr = (Array.isArray(params) ? params : [params]) as Array<{
@@ -236,29 +240,40 @@ export default function MainChart({
       animationDurationUpdate: reduced ? 0 : 350,
       animationEasing: 'cubicOut',
       axisPointer: { link: [{ xAxisIndex: 'all' }], label: { backgroundColor: INK } },
-      // 双行图例：第一行 = 曲线开关；第二行 = 0.3/0.7 参考线说明（避免标注悬浮遮挡曲线）
-      legend: [
-        {
-          data: ['创业板指数', '创业板/中证红利'],
-          top: 6,
-          left: 4,
-          itemWidth: 16,
-          itemGap: 14,
-          textStyle: { color: '#5A6B85', fontSize: 12 },
-          inactiveColor: '#C3CAD6',
-          selected: legendRef.current,
-        },
-        {
-          data: ['0.300 低位参考', '0.700 高位参考'],
-          top: 28,
-          left: 4,
-          itemWidth: 14,
-          itemGap: 12,
-          textStyle: { color: MUTED, fontSize: 11 },
-          inactiveColor: '#C3CAD6',
-          selected: legendRef.current,
-        },
-      ],
+      // 图例：PC 宽屏单行放全 4 项（与曲线图例同行同规格，文字清晰）；窄屏（移动端）换两行避免溢出
+      legend: wide
+        ? {
+            data: ['创业板指数', '创业板/中证红利', '0.300 低位参考', '0.700 高位参考'],
+            top: 6,
+            left: 4,
+            itemWidth: 16,
+            itemGap: 14,
+            textStyle: { color: '#5A6B85', fontSize: 12 },
+            inactiveColor: '#C3CAD6',
+            selected: legendRef.current,
+          }
+        : [
+            {
+              data: ['创业板指数', '创业板/中证红利'],
+              top: 6,
+              left: 4,
+              itemWidth: 16,
+              itemGap: 14,
+              textStyle: { color: '#5A6B85', fontSize: 12 },
+              inactiveColor: '#C3CAD6',
+              selected: legendRef.current,
+            },
+            {
+              data: ['0.300 低位参考', '0.700 高位参考'],
+              top: 28,
+              left: 4,
+              itemWidth: 14,
+              itemGap: 12,
+              textStyle: { color: '#5A6B85', fontSize: 12 },
+              inactiveColor: '#C3CAD6',
+              selected: legendRef.current,
+            },
+          ],
       tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -439,7 +454,7 @@ export default function MainChart({
       ],
     }
     return option as ChartOption
-  }, [records, extremes, recordMap, reducedMotion, coarse])
+  }, [records, extremes, recordMap, reducedMotion, coarse, isWide])
 
   // 构建 / 重建图表（数据刷新时整体重建；缩放窗口与图例状态保留）
   useEffect(() => {
