@@ -156,7 +156,7 @@ export default function MainChart({
     const g = granularityRef.current
     const reduced = reducedRef.current
     const isCoarse = coarseRef.current
-    const wide = isWideRef.current
+    const wide = isWideRef.current || isFullscreen // 全屏下图表宽度为屏幕高度，足够放下单行图例
 
     const baseX = {
       type: 'time' as const,
@@ -454,7 +454,7 @@ export default function MainChart({
       ],
     }
     return option as ChartOption
-  }, [records, extremes, recordMap, reducedMotion, coarse, isWide])
+  }, [records, extremes, recordMap, reducedMotion, coarse, isWide, isFullscreen])
 
   // 构建 / 重建图表（数据刷新时整体重建；缩放窗口与图例状态保留）
   useEffect(() => {

@@ -34,7 +34,30 @@ export default function App() {
   const sectionRef = useRef<HTMLElement | null>(null)
   const [realFullscreen, setRealFullscreen] = useState(false)
   const [pseudoFullscreen, setPseudoFullscreen] = useState(false)
+  const [fsSize, setFsSize] = useState<{ w: number; h: number } | null>(null)
   const isChartFullscreen = realFullscreen || pseudoFullscreen
+
+  // 全屏期间实时测量可视区域像素（visualViewport，规避 iOS/微信 100vh 与实际可视高度不一致导致的裁切）
+  const measureFsSize = useCallback(() => {
+    const vv = window.visualViewport
+    setFsSize({
+      w: Math.round(vv?.width ?? window.innerWidth),
+      h: Math.round(vv?.height ?? window.innerHeight),
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!isChartFullscreen) return
+    measureFsSize()
+    window.addEventListener('resize', measureFsSize)
+    window.addEventListener('orientationchange', measureFsSize)
+    window.visualViewport?.addEventListener('resize', measureFsSize)
+    return () => {
+      window.removeEventListener('resize', measureFsSize)
+      window.removeEventListener('orientationchange', measureFsSize)
+      window.visualViewport?.removeEventListener('resize', measureFsSize)
+    }
+  }, [isChartFullscreen, measureFsSize])
 
   // 真全屏状态同步：监听标准与 Safari webkit 前缀事件，ESC 退出时也能归位
   useEffect(() => {
@@ -92,6 +115,7 @@ export default function App() {
         return
       }
       // iPhone Safari / WKWebView 不支持任意元素全屏 → 覆盖层模拟全屏
+      measureFsSize()
       setPseudoFullscreen(true)
     } catch (e: unknown) {
       setToast({
@@ -100,7 +124,7 @@ export default function App() {
         tone: 'error',
       })
     }
-  }, [pseudoFullscreen, isTouch])
+  }, [pseudoFullscreen, isTouch, measureFsSize])
 
   useEffect(() => {
     if (!toast) return
@@ -126,12 +150,13 @@ export default function App() {
   }, [records])
 
   // 移动端全屏且竖屏时：整卡旋转 90° 模拟横屏（Android 已优先锁定原生横屏，不会走到这里；
-  // 用户物理旋转手机到横屏后 isPortrait 翻转，自动恢复正向铺满）
+  // 用户物理旋转手机到横屏后 isPortrait 翻转，自动恢复正向铺满）。
+  // 尺寸用 JS 实测像素（fsSize），不用 100vh/100vw——视口单位在 iOS/微信里大于实际可视区域，会把图例/按钮裁出屏幕
   const rotateLandscape = isChartFullscreen && isPortrait && isTouch
 
   // 全屏态挂在普通 <section> 上（motion 外置），避免 framer-motion 的内联 transform 干扰 CSS 旋转
   const sectionClassName = rotateLandscape
-    ? 'fixed left-0 top-0 z-[70] flex flex-col overflow-hidden rounded-none bg-card p-3 w-[100vh] h-[100vw] supports-[width:100dvh]:w-[100dvh] supports-[height:100dvh]:h-[100dvh] [transform:rotate(90deg)_translateY(-100%)] [transform-origin:top_left]'
+    ? 'fixed left-0 top-0 z-[70] flex flex-col overflow-hidden rounded-none bg-card p-3 [transform:rotate(90deg)_translateY(-100%)] [transform-origin:top_left]'
     : realFullscreen
       ? 'flex h-full w-full flex-col overflow-hidden rounded-none bg-card p-4'
       : pseudoFullscreen
@@ -157,7 +182,16 @@ export default function App() {
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <section ref={sectionRef} className={sectionClassName}>
+                <section
+                  ref={sectionRef}
+                  className={sectionClassName}
+                  style={
+                    rotateLandscape
+                      ? // 宽 = 可视区高度、高 = 可视区宽度（旋转后恰好铺满屏幕）
+                        { width: fsSize?.h ?? '100vh', height: fsSize?.w ?? '100vw' }
+                      : undefined
+                  }
+                >
                   {!isChartFullscreen && (
                     <div className="mb-3">
                       <h2 className="text-sm font-semibold md:text-base">历史走势与相对比值</h2>
