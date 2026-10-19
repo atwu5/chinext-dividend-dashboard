@@ -21,7 +21,7 @@ export default function Footer({ meta, onOpenModal }: Props) {
         <p className="text-[11px] leading-5 text-muted">
           本工具仅供个人研究、历史数据观察及市场风格分析使用，不构成证券、基金投资建议。
           <br />
-          数据来源：{meta.sourceName} · 数据截至 {meta.lastDate}（收盘）
+          数据截至 {meta.lastDate}（收盘）
         </p>
       </div>
     </footer>

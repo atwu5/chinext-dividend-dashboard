@@ -28,16 +28,15 @@ export default function Header({ meta, refreshing, onRefresh }: Props) {
           <p className="mt-0.5 text-xs text-muted md:text-[13px]">基于历史指数相对强弱，观察成长与红利风格变化。</p>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted">
-          <span className="inline-flex items-center gap-1.5">
+          <span
+            className="inline-flex items-center gap-1.5"
+            title={`数据来源：${meta.sourceName} · 版本 v${meta.version} · 更新时间 ${fmtDateTimeCn(meta.lastUpdated)}`}
+          >
             <StatusDot color="#20A97B" title="数据加载正常" />
             <span className="tabular-nums">
               数据截至：<b className="font-semibold text-ink">{meta.lastDate}</b>（收盘）
             </span>
           </span>
-          <span aria-hidden className="hidden text-[#D9DEE8] sm:inline">|</span>
-          <span>来源：{meta.sourceName}</span>
-          <span aria-hidden className="hidden text-[#D9DEE8] sm:inline">|</span>
-          <span title={`数据版本 v${meta.version} · 更新时间 ${fmtDateTimeCn(meta.lastUpdated)}`}>v{meta.version}</span>
           <button
             type="button"
             onClick={onRefresh}
