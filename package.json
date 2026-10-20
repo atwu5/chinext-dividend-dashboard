@@ -14,7 +14,8 @@
     "data:init": "tsx scripts/initialize-data.ts",
     "data:update": "tsx scripts/update-data.ts",
     "data:validate": "tsx scripts/validate-data.ts",
-    "data:integrity": "tsx scripts/check-integrity.ts"
+    "data:integrity": "tsx scripts/check-integrity.ts",
+    "data:notify": "tsx scripts/notify.ts"
   },
   "dependencies": {
     "echarts": "^5.5.1",

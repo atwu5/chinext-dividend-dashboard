@@ -58,7 +58,15 @@ jobs:
             git add public/data
             git commit -m "chore(data): 每日增量更新（run $GITHUB_RUN_ID）"
             git push
-            echo "已提交数据变更（注意：GITHUB_TOKEN 的推送不会触发 push 事件，重新部署由 deploy.yml 的 workflow_run 监听完成）"
+            echo "DATA_CHANGED=true" >> "$GITHUB_ENV"
+            echo "已提交数据变更（GITHUB_TOKEN 的推送不会触发 push 事件，重新部署由 deploy.yml 的 workflow_run 监听完成）"
           else
             echo "数据无变化，跳过提交（节假日 / 数据源未更新）"
           fi
+
+      - name: 微信推送提醒（虾推啥通道）
+        if: env.DATA_CHANGED == 'true'
+        continue-on-error: true
+        env:
+          XTUIS_PUSH_URLS: ${{ secrets.XTUIS_PUSH_URLS }}
+        run: npm run data:notify
