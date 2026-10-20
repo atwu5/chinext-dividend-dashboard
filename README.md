@@ -101,10 +101,11 @@ public/data/
 
 `.github/workflows/update-data.yml`：
 
-- 定时触发：UTC `0 8 / 30 9 / 30 10` 的周一至周五，即**北京时间 16:00 / 17:30 / 18:30**（A 股 15:00 收盘，覆盖数据商日K更新完成的时间窗）
-- 幂等执行 `data:update` + `data:validate`；数据有变化时自动提交 JSON 并 push → 触发 Pages 重新部署；无变化则跳过提交
+- 定时触发：UTC `08:00 ~ 11:00` 每 30 分钟（周一至周五，共 7 个冗余时间点），即**北京时间 16:00 ~ 19:00**（A 股 15:00 收盘，覆盖数据商日K更新完成的时间窗）
+- 幂等执行 `data:update` + `data:validate`；数据有变化时自动提交 JSON 并 push；无变化则跳过提交
 - 支持手动运行（workflow_dispatch）
-- ⚠️ GitHub Actions 定时任务可能延迟数分钟甚至更久，不能保证精确分钟执行；多时段触发 + 脚本幂等保证最终一致
+- 数据提交使用 GITHUB_TOKEN，其推送不会触发 push 事件（GitHub 防递归机制），因此 `deploy.yml` 额外监听本工作流的 `workflow_run` 完成事件，「数据更新 → 自动重新部署」链路由此闭合
+- ⚠️ GitHub Actions 定时任务可能延迟数分钟甚至数小时（实测首日延迟约 7 小时），多时间点冗余 + 脚本幂等保证最终一致；若需即时更新可直接手动 Run workflow
 
 `.github/workflows/check-integrity.yml`：北京时间每周六 10:00 运行全量完整性检查（周六休市），发现早期缺口与数据源修订并自动修复。
 

@@ -3,6 +3,15 @@ name: 构建并部署到 GitHub Pages
 on:
   push:
     branches: [main]
+  # 关键：数据工作流用内置 GITHUB_TOKEN 提交推送时，GitHub 不会触发 push 事件（防递归机制），
+  # 因此这里监听数据工作流的完成事件，闭合「数据更新 → 自动重新部署」链路。
+  # workflow_run 在默认分支最新提交上运行，checkout 拿到的就是含最新数据的 main。
+  workflow_run:
+    workflows:
+      - 数据每日增量更新
+      - 全量数据完整性检查
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -16,6 +25,8 @@ concurrency:
 
 jobs:
   build:
+    # 数据工作流失败时不部署（保留线上上一有效版本）
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: 检出仓库

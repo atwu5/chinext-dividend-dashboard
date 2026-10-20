@@ -3,12 +3,16 @@ name: 数据每日增量更新
 on:
   schedule:
     # GitHub Actions cron 使用 UTC；A 股 15:00 收盘，数据商日K一般 16:00 后完成更新。
-    # 以下时间 = 北京时间（Asia/Shanghai, UTC+8）周一至周五 16:00 / 17:30 / 18:30。
-    # 注意：GitHub Actions 定时任务可能延迟数分钟甚至更久，不能保证精确分钟执行；
-    # 更新脚本幂等（无新交易日则不写文件、不提交），多次触发是安全的。
+    # 以下覆盖北京时间（UTC+8）周一至周五 16:00 ~ 19:00，每 30 分钟一次（UTC 08:00 ~ 11:00），
+    # 共 7 个冗余时间点：GitHub 定时调度可能延迟数分钟甚至数小时（实测首日延迟约 7 小时），
+    # 脚本幂等（无新交易日不写文件、不提交），多次触发安全，保证最终一致。
     - cron: '0 8 * * 1-5'
+    - cron: '30 8 * * 1-5'
+    - cron: '0 9 * * 1-5'
     - cron: '30 9 * * 1-5'
+    - cron: '0 10 * * 1-5'
     - cron: '30 10 * * 1-5'
+    - cron: '0 11 * * 1-5'
   workflow_dispatch:
     inputs:
       reason:
@@ -54,14 +58,7 @@ jobs:
             git add public/data
             git commit -m "chore(data): 每日增量更新（run $GITHUB_RUN_ID）"
             git push
-            echo "DATA_CHANGED=true" >> "$GITHUB_ENV"
-            echo "已提交数据变更，将自动触发 Pages 重新部署"
+            echo "已提交数据变更（注意：GITHUB_TOKEN 的推送不会触发 push 事件，重新部署由 deploy.yml 的 workflow_run 监听完成）"
           else
             echo "数据无变化，跳过提交（节假日 / 数据源未更新）"
           fi
-
-      - name: 记录结果
-        if: always()
-        run: |
-          echo "更新流程结束。若上方更新步骤失败，请查看日志：常见原因为数据源接口临时不可用，" \
-               "本地数据未被修改，线上仍为上一有效版本，等待下次定时任务重试即可。"
