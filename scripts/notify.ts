@@ -1,7 +1,7 @@
 /**
  * 数据入库后的微信推送（虾推啥 .send 通道）：
  * - 通道地址从环境变量 XTUIS_PUSH_URLS 读取（逗号分隔；存于仓库 Secrets，避免公开仓库泄露）
- * - text = 最新交易日日期；desp = 创业板指数/中证红利=比值 + 仪表盘跳转链接；url = 跳转地址
+ * - text = 创业板指数/中证红利=比值；desp = 交易日日期；url = 仪表盘跳转地址（固定）
  * - 推送失败仅记录日志、进程以 0 退出：通知失败绝不能阻断数据发布/部署链路
  */
 import type { DailyRecord, Metadata } from '../shared/types'
@@ -51,9 +51,10 @@ async function main(): Promise<void> {
     return
   }
 
-  const text = last.date
-  const desp = `创业板指数/中证红利=${last.ratio}\n\n[📊 打开仪表盘](${DASHBOARD_URL})`
-  console.log(`[notify] 推送 ${urls.length} 个通道：text="${text}" desp="${desp.replace('\n\n', ' | ')}"`)
+  // 入参规则（用户指定）：text = 创业板指数/中证红利=比值；desp = 交易日日期；url = 仪表盘跳转地址
+  const text = `创业板指数/中证红利=${last.ratio}`
+  const desp = last.date
+  console.log(`[notify] 推送 ${urls.length} 个通道：text="${text}" desp="${desp}"`)
 
   let success = 0
   for (const url of urls) {
