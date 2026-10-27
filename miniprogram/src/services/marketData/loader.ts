@@ -26,7 +26,15 @@ export function setCachedDashboardData(data: DashboardData | null): void {
 }
 
 async function getJson<T>(url: string): Promise<T> {
-  const res = await Taro.request<T>({ url, dataType: 'json' })
+  // 各平台请求失败时抛出的对象结构不同（如 { errMsg: 'request:fail url not in domain list' }），
+  // 统一转成带具体原因的 Error，避免页面上显示 [object Object]
+  let res: { statusCode: number; data: T }
+  try {
+    res = await Taro.request<T>({ url, dataType: 'json' })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : ((e as { errMsg?: string })?.errMsg || JSON.stringify(e))
+    throw new Error(`${msg} · ${url.replace(DATA_BASE_URL, '')}`)
+  }
   if (res.statusCode < 200 || res.statusCode >= 300) {
     throw new Error(`HTTP ${res.statusCode} · ${url.replace(DATA_BASE_URL, '')}`)
   }

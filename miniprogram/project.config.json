@@ -1,15 +1,1 @@
-{
-  "miniprogramRoot": "./dist",
-  "projectname": "miniprogram",
-  "description": "创业板指/中证红利比值看板（与 Web 同源数据）",
-  "appid": "touristappid",
-  "setting": {
-    "urlCheck": true,
-    "es6": false,
-    "enhance": false,
-    "compileHotReLoad": false,
-    "postcss": false,
-    "minified": false
-  },
-  "compileType": "miniprogram"
-}
+{"miniprogramRoot":"./dist","projectname":"chinext","description":"创业板指/中证红利比值看板（与 Web 同源数据）","appid":"tt8108f7b51f71c35f01","setting":{"urlCheck":true,"es6":false,"enhance":false,"compileHotReLoad":false,"postcss":false,"minified":false},"compileType":"miniprogram"}
