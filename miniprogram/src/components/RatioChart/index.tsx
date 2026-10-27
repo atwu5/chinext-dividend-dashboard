@@ -28,8 +28,19 @@ echarts.use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, Mark
 let measureCtx: any = null
 function getMeasureContext(): any {
   if (!measureCtx) {
-    const canvas = Taro.createOffscreenCanvas({ type: '2d', width: 200, height: 40 })
-    measureCtx = canvas.getContext('2d')
+    try {
+      const canvas = Taro.createOffscreenCanvas({ type: '2d', width: 200, height: 40 })
+      measureCtx = canvas.getContext('2d')
+    } catch (e) {
+      measureCtx = null
+    }
+  }
+  if (!measureCtx) {
+    // 抖音等平台低版本基础库无离屏画布时，退化为字符数估算（骨架阶段够用，真机回归时改为主画布上下文测量）
+    measureCtx = {
+      font: '',
+      measureText: (text: string) => ({ width: String(text).length * 12 }),
+    }
   }
   return measureCtx
 }

@@ -53,6 +53,16 @@ https://atwu5.github.io
 4. **CI 兜底**：后续可在根 `package.json` 的 build 前增加 `npm --prefix miniprogram run build:weapp`，
    让任一端破坏对齐时 CI 变红。
 
+## 抖音小程序平台（tt）
+
+Taro 多端：与微信小程序共用同一套 `src/` 代码与数据层，仅平台插件不同。
+
+- 构建：`npm run build:tt`（监听模式 `npm run dev:tt`）
+- 调试：抖音开发者工具直接导入 `miniprogram/dist` 目录（`dist/project.config.json` 由 `project.tt.json` 在构建时生成，appid 占位需换成你的抖音小程序 AppID）
+- 域名白名单：同样需在抖音开放平台把 `https://atwu5.github.io` 加入 request 合法域名
+- 注意：两个平台共用 `dist` 输出目录，切换平台需重新构建；微信开发者工具导入的是 `miniprogram/` 根目录，互不影响
+- 平台差异兜底：图表文字测量在无离屏画布的平台（抖音低版本基础库）自动退化为估算；触控交互（tooltip/dataZoom）需在抖音开发者工具与真机回归
+
 ## 已实现（骨架最小闭环）
 
 - 加载两个 JSON + metadata/historical 版本一致性校验（与 Web 同逻辑）
