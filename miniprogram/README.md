@@ -59,7 +59,7 @@ Taro 多端：与微信小程序共用同一套 `src/` 代码与数据层，仅�
 
 - 构建：`npm run build:tt`（监听模式 `npm run dev:tt`）
 - 调试：抖音开发者工具直接导入 `miniprogram/dist` 目录（`dist/project.config.json` 由 `project.tt.json` 在构建时生成，appid 已配置为真实抖音小程序 AppID）
-- 域名白名单：同样需在抖音开放平台把 `https://atwu5.github.io` 加入 request 合法域名
+- 域名白名单：同样需在抖音开放平台把 `atwu5.github.io` 与 `cdn.jsdelivr.net` 加入 request 合法域名
 - 注意：两个平台共用 `dist` 输出目录，切换平台需重新构建；微信开发者工具导入的是 `miniprogram/` 根目录，互不影响
 - 工具内提示「不在配置的域名白名单」：白名单绑定真实 AppID，`project.tt.json` 的 `appid` 还是占位时必现——换成你的抖音 AppID 后重新 `npm run build:tt`；调试期也可在工具「详情 → 本地设置」勾选不校验域名（上线仍会校验白名单）
 - 平台差异兜底：图表文字测量在无离屏画布的平台（抖音低版本基础库）自动退化为估算；触控交互（tooltip/dataZoom）需在抖音开发者工具与真机回归
