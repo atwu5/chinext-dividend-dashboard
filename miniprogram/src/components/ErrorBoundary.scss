@@ -1,0 +1,29 @@
+.eb-root {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 48rpx 32rpx;
+  box-sizing: border-box;
+}
+
+.eb-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #e65b64;
+  margin-bottom: 16rpx;
+}
+
+.eb-msg {
+  display: block;
+  font-size: 24rpx;
+  line-height: 36rpx;
+  color: #202c40;
+  word-break: break-all;
+}
+
+.eb-hint {
+  display: block;
+  margin-top: 24rpx;
+  font-size: 22rpx;
+  color: #8792a5;
+}

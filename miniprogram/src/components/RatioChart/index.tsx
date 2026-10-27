@@ -218,6 +218,7 @@ export default function RatioChart({
   useEffect(() => {
     if (records.length === 0 || !extremes) return
     let disposed = false
+    try {
     Taro.createSelectorQuery()
       .select(`#${canvasId}`)
       .fields({ node: true, size: true, rect: true })
@@ -289,6 +290,9 @@ export default function RatioChart({
           chartRef.current = null
         }
       })
+    } catch (e) {
+      setInitError(e instanceof Error ? e.message : String(e))
+    }
     return () => {
       disposed = true
       try {

@@ -5,6 +5,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import ErrorBoundary from '../../components/ErrorBoundary'
 import ExplanationModal from '../../components/ExplanationModal'
 import MetricCards from '../../components/MetricCards'
 import RatioChart from '../../components/RatioChart'
@@ -53,6 +54,7 @@ export default function Index() {
   }
 
   return (
+    <ErrorBoundary>
     <View className='page'>
       <View className='meta-bar'>
         <Text className='meta-text'>
@@ -101,5 +103,6 @@ export default function Index() {
 
       <ExplanationModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </View>
+    </ErrorBoundary>
   )
 }

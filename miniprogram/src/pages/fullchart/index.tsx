@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react'
 import { Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import ErrorBoundary from '../../components/ErrorBoundary'
 import RatioChart from '../../components/RatioChart'
 import { cachedDashboardData } from '../../services/marketData/loader'
 import type { Granularity, RangeKey } from '../../services/chartOption'
@@ -46,6 +47,7 @@ export default function FullChart() {
   const canvasHeight = (landscape ? win.windowHeight : win.windowWidth) - 48 - 130
 
   return (
+    <ErrorBoundary>
     <View
       className={`fc-root ${rotated ? 'fc-rotated' : ''}`}
       style={rotated ? { width: `${win.windowHeight}px`, height: `${win.windowWidth}px` } : undefined}
@@ -65,5 +67,6 @@ export default function FullChart() {
         heightPx={canvasHeight}
       />
     </View>
+    </ErrorBoundary>
   )
 }
