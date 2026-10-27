@@ -16,9 +16,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { REF_HIGH, REF_LOW, TIMELINE_START } from '../../shared/indices'
 import type { DailyRecord } from '../../shared/types'
 import { useMediaQuery } from '../hooks/useMediaQuery'
-import { zoneStyleOf } from '../utils/calculations'
-import { fmtDateUTC, fmtPoint, pad2, shiftYearsISO, laterDate } from '../utils/format'
-import { fmtRatio } from '../utils/calculations'
+import { zoneStyleOf } from '../../shared/calculations'
+import { fmtDateUTC, fmtPoint, pad2, shiftYearsISO, laterDate } from '../../shared/format'
+import { fmtRatio } from '../../shared/calculations'
 import TimeRangeSelector, { type Granularity, type RangeKey } from './TimeRangeSelector'
 
 echarts.use([

@@ -1,25 +1,36 @@
-import { useCallback } from 'react'
+/**
+ * 首页：与 Web 端 App 布局逐块对齐
+ * （指标卡 → 主图卡[标题/极值副标题/时间控制/图例/画布] → 页脚 → 悬浮说明按钮 → 说明弹窗）
+ */
+import { useCallback, useMemo, useState } from 'react'
 import { Button, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import ExplanationModal from '../../components/ExplanationModal'
+import MetricCards from '../../components/MetricCards'
 import RatioChart from '../../components/RatioChart'
 import { useMarketData } from '../../hooks/useMarketData'
-import {
-  fmtPct,
-  fmtRatio,
-  latestPct,
-  ratioPositionPct,
-  zoneStyleOf,
-} from '../../../../src/utils/calculations' // 临时跨目录引用：合并回 main 时 calculations 迁入 shared/ 后统一改路径
-
+import type { Granularity, RangeKey } from '../../services/chartOption'
+import { fmtRatio } from '../../../../shared/calculations'
 import './index.scss'
 
 export default function Index() {
   const { status, data, error, refreshing, reload } = useMarketData()
+  const [granularity, setGranularity] = useState<Granularity>('day')
+  const [rangeKey, setRangeKey] = useState<RangeKey>('all')
+  const [modalOpen, setModalOpen] = useState(false)
 
-  const onReload = useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     const result = await reload()
-    Taro.showToast({ title: result.message, icon: 'none', duration: 2200 })
+    Taro.showToast({ title: result.message, icon: 'none', duration: 2600 })
   }, [reload])
+
+  const records = useMemo(() => data?.records ?? [], [data])
+  const extremes = useMemo(() => {
+    if (records.length === 0) return null
+    const low = records.reduce((a, b) => (b.ratio < a.ratio ? b : a))
+    const high = records.reduce((a, b) => (b.ratio > a.ratio ? b : a))
+    return { low, high }
+  }, [records])
 
   if (status === 'loading') {
     return (
@@ -29,61 +40,66 @@ export default function Index() {
     )
   }
 
-  if (status === 'error' || !data) {
+  if (status === 'error' || !data || !extremes) {
     return (
       <View className='page'>
         <View className='card error'>
           <View className='error-title'>数据加载失败</View>
           <View className='error-msg'>{error}</View>
-          <Button className='retry' size='mini' onClick={onReload}>重试</Button>
+          <Button className='retry' size='mini' onClick={handleRefresh}>重试</Button>
         </View>
       </View>
     )
   }
 
-  const { meta, records } = data
-  const last = records[records.length - 1]
-  const zone = zoneStyleOf(last.ratio)
-  const pos = ratioPositionPct(last.ratio)
-
   return (
     <View className='page'>
       <View className='meta-bar'>
         <Text className='meta-text'>
-          数据截至 {meta.lastDate} · v{meta.version} · {meta.count} 个交易日
+          数据截至 {data.meta.lastDate} · v{data.meta.version} · {data.meta.count} 个交易日
         </Text>
-        <Text className='meta-refresh' onClick={onReload}>
+        <Text className='meta-refresh' onClick={handleRefresh}>
           {refreshing ? '刷新中…' : '刷新'}
         </Text>
       </View>
 
-      <View className='card hero'>
-        <View className='hero-label'>创业板指 / 中证红利 最新比值</View>
-        <View className='hero-value' style={{ color: zone.color }}>{fmtRatio(last.ratio)}</View>
-        <View className='hero-zone' style={{ color: zone.color }}>
-          {zone.label} · 区间位置 {pos.toFixed(0)}%
-        </View>
-      </View>
-
-      <View className='card stats'>
-        <View className='stat'>
-          <View className='stat-label'>创业板指（最新交易日）</View>
-          <View className='stat-value'>{fmtPct(latestPct(records, 'chinextClose'))}</View>
-        </View>
-        <View className='stat'>
-          <View className='stat-label'>中证红利（最新交易日）</View>
-          <View className='stat-value'>{fmtPct(latestPct(records, 'dividendClose'))}</View>
-        </View>
-      </View>
+      <MetricCards records={records} />
 
       <View className='card chart-card'>
-        <View className='chart-title'>历史比值走势</View>
-        <RatioChart records={records} />
+        <View className='chart-head'>
+          <Text className='chart-title'>历史走势与相对比值</Text>
+          <Text className='chart-sub'>
+            全历史极值：最低 {fmtRatio(extremes.low.ratio)}（{extremes.low.date}）· 最高 {fmtRatio(extremes.high.ratio)}（{extremes.high.date}）
+          </Text>
+        </View>
+        <RatioChart
+          records={records}
+          granularity={granularity}
+          onGranularityChange={setGranularity}
+          rangeKey={rangeKey}
+          onRangeChange={setRangeKey}
+          heightPx={380}
+          onToggleFullscreen={() => Taro.navigateTo({ url: '/pages/fullchart/index' })}
+        />
       </View>
 
       <View className='footer'>
-        数据来源：{meta.sourceName} · 仅保留两指数同日收盘的交易日
+        <View className='footer-btn' onClick={() => setModalOpen(true)}>
+          <Text className='footer-btn-text'>指标说明与风险提示</Text>
+        </View>
+        <Text className='footer-text'>
+          本工具仅供个人研究、历史数据观察及市场风格分析使用，不构成证券、基金投资建议。
+        </Text>
+        <Text className='footer-text'>
+          数据来源：{data.meta.sourceName} · 数据截至 {data.meta.lastDate}（收盘）
+        </Text>
       </View>
+
+      <View className='fab' onClick={() => setModalOpen(true)}>
+        <Text className='fab-text'>i</Text>
+      </View>
+
+      <ExplanationModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </View>
   )
 }

@@ -1,6 +1,7 @@
 export default defineAppConfig({
   pages: [
     'pages/index/index',
+    'pages/fullchart/index',
   ],
   window: {
     backgroundTextStyle: 'light',

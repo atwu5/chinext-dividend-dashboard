@@ -11,8 +11,8 @@ import {
   ratioPositionPct,
   signedDiff,
   zoneOf,
-} from '../utils/calculations'
-import { fmtPoint } from '../utils/format'
+} from '../../shared/calculations'
+import { fmtPoint } from '../../shared/format'
 import StatusIndicator from './StatusIndicator'
 
 const container: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } }

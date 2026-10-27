@@ -1,4 +1,4 @@
-import { zoneStyleOf } from '../utils/calculations'
+import { zoneStyleOf } from '../../shared/calculations'
 
 interface Props {
   ratio: number

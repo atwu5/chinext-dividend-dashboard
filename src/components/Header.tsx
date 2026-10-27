@@ -1,6 +1,6 @@
 import { RefreshCw } from 'lucide-react'
 import type { Metadata } from '../../shared/types'
-import { fmtDateTimeCn } from '../utils/format'
+import { fmtDateTimeCn } from '../../shared/format'
 
 interface Props {
   meta: Metadata

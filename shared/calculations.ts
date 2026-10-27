@@ -1,5 +1,5 @@
-import { REF_HIGH, REF_LOW } from '../../shared/indices'
-import type { DailyRecord } from '../../shared/types'
+import { REF_HIGH, REF_LOW } from './indices'
+import type { DailyRecord } from './types'
 
 export type Zone = 'low' | 'mid' | 'high'
 

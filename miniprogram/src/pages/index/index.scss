@@ -1,14 +1,15 @@
 .page {
   min-height: 100vh;
-  padding: 24rpx;
+  padding: 24rpx 24rpx 48rpx;
   box-sizing: border-box;
   background-color: #f5f7fa;
 }
 
 .card {
   background-color: #fff;
-  border-radius: 16rpx;
-  padding: 28rpx;
+  border: 1rpx solid #e7eaf1;
+  border-radius: 24rpx;
+  padding: 24rpx;
   margin-bottom: 24rpx;
 }
 
@@ -27,54 +28,88 @@
 .meta-refresh {
   font-size: 24rpx;
   color: #2979ff;
+  padding: 4rpx 8rpx;
 }
 
-.hero-label {
+.chart-card {
+  padding: 24rpx;
+}
+
+.chart-head {
+  margin-bottom: 16rpx;
+}
+
+.chart-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #202c40;
+}
+
+.chart-sub {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  color: #8792a5;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+  padding: 28rpx 16rpx calc(24rpx + env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.footer-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 14rpx 28rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid #e7eaf1;
+  background-color: #fff;
+}
+
+.footer-btn-text {
   font-size: 24rpx;
   color: #5a6b85;
 }
 
-.hero-value {
-  font-size: 72rpx;
-  font-weight: 600;
-  margin: 12rpx 0;
-}
-
-.hero-zone {
-  font-size: 24rpx;
-}
-
-.stats {
-  display: flex;
-}
-
-.stat {
-  flex: 1;
-}
-
-.stat-label {
+.footer-text {
   font-size: 22rpx;
-  color: #8a94a6;
-  margin-bottom: 8rpx;
+  line-height: 34rpx;
+  color: #a5adbc;
 }
 
-.stat-value {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #2b3245;
+.fab {
+  position: fixed;
+  right: 28rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom));
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background-color: #202c40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16rpx 40rpx -12rpx rgba(32, 44, 64, 0.45);
+  z-index: 50;
 }
 
-.chart-title {
-  font-size: 26rpx;
-  color: #2b3245;
-  margin-bottom: 12rpx;
+.fab-text {
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 700;
+  font-style: italic;
 }
 
 .skeleton {
   color: #8a94a6;
   font-size: 26rpx;
   text-align: center;
-  padding: 80rpx 0;
+  padding: 120rpx 0;
 }
 
 .error-title {
@@ -91,12 +126,5 @@
 }
 
 .retry {
-  width: 160rpx;
-}
-
-.footer {
-  font-size: 20rpx;
-  color: #a5adbc;
-  text-align: center;
-  padding: 8rpx 0 40rpx;
+  width: 200rpx;
 }

@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
-import { REF_HIGH, REF_LOW } from '../../shared/indices'
+import { EXPLANATION_SECTIONS } from '../../shared/explanation'
 
 interface Props {
   open: boolean
@@ -75,39 +75,22 @@ export default function ExplanationModal({ open, onClose }: Props) {
               </button>
             </div>
 
-            <Section title="指标计算规则">
-              <p>本工具通过创业板指数与中证红利指数相同交易日的收盘点位计算相对比值。</p>
-              <p>
-                计算公式：<b>相对比值 = 创业板指数收盘点位 ÷ 中证红利指数收盘点位</b>
-                （保留 6 位小数，界面展示 3 位）。
-              </p>
-              <p>比值反映指数之间的相对价格位置变化，不等于两者的真实估值比例。</p>
-            </Section>
-
-            <Section title="历史参考线">
-              <p>
-                {REF_LOW.toFixed(3)} 与 {REF_HIGH.toFixed(3)} 来源于历史行情观察，用于辅助识别相对位置。
-              </p>
-              <p>这两个阈值不保证长期有效，也不代表市场一定在附近见底或见顶。</p>
-            </Section>
-
-            <Section title="指标使用限制">
-              <ul className="list-disc space-y-1 pl-5">
-                <li>指数比值不等于估值比值。</li>
-                <li>历史上涨或下跌不保证未来重复。</li>
-                <li>市场结构变化可能导致历史区间失效。</li>
-                <li>两种资产可能同时上涨或同时下跌。</li>
-                <li>价格指数未完整反映分红再投资回报。</li>
-                <li>历史极值不代表确定的买卖点。</li>
-              </ul>
-            </Section>
-
-            <Section title="风险提示">
-              <p>
-                本工具仅供个人研究、历史数据观察及市场风格分析使用，不构成证券、基金投资建议，也不承诺任何投资收益。
-              </p>
-              <p className="font-medium text-ink">投资有风险，决策需谨慎。</p>
-            </Section>
+{EXPLANATION_SECTIONS.map((section) => (
+              <Section key={section.title} title={section.title}>
+                {section.paragraphs.map((p) => (
+                  <p key={p.text} className={p.strong ? 'font-medium text-ink' : undefined}>
+                    {p.text}
+                  </p>
+                ))}
+                {section.bullets && (
+                  <ul className="list-disc space-y-1 pl-5">
+                    {section.bullets.map((b) => (
+                      <li key={b}>{b}</li>
+                    ))}
+                  </ul>
+                )}
+              </Section>
+            ))}
           </motion.div>
         </motion.div>
       )}

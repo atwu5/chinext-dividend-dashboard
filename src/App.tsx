@@ -14,7 +14,7 @@ import type { Granularity, RangeKey } from './components/TimeRangeSelector'
 import Toast, { type ToastData } from './components/Toast'
 import { useMarketData } from './hooks/useMarketData'
 import { useMediaQuery } from './hooks/useMediaQuery'
-import { fmtRatio } from './utils/calculations'
+import { fmtRatio } from '../shared/calculations'
 import { enterFullscreen, exitFullscreen, getFullscreenElement, isFullscreenSupported } from './utils/fullscreen'
 
 const itemVariants: Variants = {
