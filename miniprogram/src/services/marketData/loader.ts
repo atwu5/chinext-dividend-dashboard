@@ -30,7 +30,8 @@ async function getJson<T>(url: string): Promise<T> {
   // 统一转成带具体原因的 Error，避免页面上显示 [object Object]
   let res: { statusCode: number; data: T }
   try {
-    res = await Taro.request<T>({ url, dataType: 'json' })
+    // 10s 超时兜底：大陆直连 github.io 可能长时间挂起，超时后进入错误态可重试，绝不无限 loading
+    res = await Taro.request<T>({ url, dataType: 'json', timeout: 10000 })
   } catch (e) {
     const msg = e instanceof Error ? e.message : ((e as { errMsg?: string })?.errMsg || JSON.stringify(e))
     throw new Error(`${msg} · ${url.replace(DATA_BASE_URL, '')}`)
