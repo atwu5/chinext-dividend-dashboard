@@ -2,7 +2,7 @@
   "miniprogramRoot": "./dist",
   "projectname": "miniprogram",
   "description": "创业板指/中证红利比值看板（与 Web 同源数据）",
-  "appid": "touristappid",
+  "appid": "tt8108f7b51f71c35f01",
   "setting": {
     "urlCheck": true,
     "es6": false,
