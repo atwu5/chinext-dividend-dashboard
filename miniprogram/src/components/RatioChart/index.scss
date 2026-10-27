@@ -6,6 +6,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12rpx;
   padding-bottom: 12rpx;
 }
@@ -14,6 +15,7 @@
   display: flex;
   gap: 10rpx;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .rc-tool-btn {
