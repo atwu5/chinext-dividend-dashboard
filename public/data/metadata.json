@@ -20,10 +20,10 @@
     }
   },
   "firstDate": "2010-06-01",
-  "lastDate": "2026-10-29",
-  "count": 3984,
-  "version": 11,
-  "lastUpdated": "2026-10-29T15:07:04.458Z",
+  "lastDate": "2026-10-30",
+  "count": 3985,
+  "version": 12,
+  "lastUpdated": "2026-10-30T14:57:43.414Z",
   "ratioDefinition": "相对比值 = 创业板指数收盘点位 ÷ 中证红利指数收盘点位（存储 6 位小数）",
   "scriptVersion": "1.0.0",
   "lastUpdateSource": "eastmoney"
