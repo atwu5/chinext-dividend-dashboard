@@ -22,9 +22,9 @@
   "firstDate": "2010-06-01",
   "lastDate": "2026-11-20",
   "count": 4000,
-  "version": 27,
-  "lastUpdated": "2026-11-20T16:52:22.911Z",
+  "version": 28,
+  "lastUpdated": "2026-11-21T08:59:36.103Z",
   "ratioDefinition": "相对比值 = 创业板指数收盘点位 ÷ 中证红利指数收盘点位（存储 6 位小数）",
   "scriptVersion": "1.0.0",
-  "lastUpdateSource": "eastmoney"
+  "lastUpdateSource": "tencent"
 }
